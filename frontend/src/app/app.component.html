@@ -1,0 +1,33 @@
+<!-- The navbar only exists while someone is logged in. auth.isLoggedIn() / auth.isLibrarian() are signals, so
+     the links switch automatically on login, logout or when a different role logs in. -->
+@if (auth.isLoggedIn()) {
+  <header class="navbar">
+    <a class="brand" routerLink="/">
+      <span class="brand-mark" aria-hidden="true">📚</span> City Library
+    </a>
+    <nav aria-label="Main">
+      <!-- routerLinkActive adds the "active" CSS class while the URL matches the link. -->
+      @if (auth.isLibrarian()) {
+        <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+        <a routerLink="/books" routerLinkActive="active">Manage books</a>
+        <a routerLink="/loans" routerLinkActive="active">Loans</a>
+        <a routerLink="/members" routerLinkActive="active">Members</a>
+        <a routerLink="/catalog" routerLinkActive="active">Catalog</a>
+      } @else {
+        <a routerLink="/catalog" routerLinkActive="active">Catalog</a>
+        <a routerLink="/my-loans" routerLinkActive="active">My loans</a>
+      }
+    </nav>
+    <div class="user">
+      <span class="user-name">{{ auth.currentUser()?.name }}</span>
+      <span class="role-chip" [class.staff]="auth.isLibrarian()">
+        {{ auth.isLibrarian() ? 'Librarian' : 'Member' }}
+      </span>
+      <button class="btn btn-ghost" type="button" (click)="auth.logout()">Log out</button>
+    </div>
+  </header>
+}
+
+<main class="container">
+  <router-outlet />
+</main>

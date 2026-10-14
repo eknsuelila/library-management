@@ -1,0 +1,46 @@
+# =====================================================================================================
+# Continuous Integration (GitHub Actions): on every push to main and every pull request, build and test
+# both halves of the app on a clean Ubuntu machine. The green check mark on GitHub tells reviewers the
+# project builds and its tests pass - not just "on my machine".
+# The two jobs run in parallel.
+# =====================================================================================================
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4                 # get the code
+      - uses: actions/setup-java@v4               # install JDK 17
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven                            # reuse downloaded dependencies between runs
+      - name: Build and run all tests (unit + integration on H2)
+        run: ./mvnw -B verify                     # -B = batch mode (no colors/progress bars in logs)
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci                               # exact versions from package-lock.json
+      - name: Unit tests (headless Chrome, preinstalled on GitHub runners)
+        run: npx ng test --watch=false --browsers=ChromeHeadless
+      - name: Production build
+        run: npx ng build --configuration production

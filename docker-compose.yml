@@ -1,0 +1,48 @@
+# =====================================================================================================
+# Runs the whole stack with one command:   docker compose up --build
+# Then open http://localhost:8093
+#   librarian@example.com / password123     member@example.com / password123
+#
+# Three containers on a private Docker network:
+#   db (PostgreSQL)  <-  backend (Spring Boot, prod profile)  <-  frontend (nginx: Angular + /api proxy)
+# Only the frontend is published to the host; the database and the API are reachable only through nginx.
+# =====================================================================================================
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: library            # database created on first start
+      POSTGRES_USER: library
+      POSTGRES_PASSWORD: library      # demo only - use a secret in a real deployment
+    volumes:
+      - db-data:/var/lib/postgresql/data      # named volume: data survives "docker compose down"
+    healthcheck:
+      # Compose marks the container "healthy" once Postgres accepts connections (used by depends_on below).
+      test: ["CMD-SHELL", "pg_isready -U library -d library"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      SPRING_PROFILES_ACTIVE: prod                     # loads application-prod.yml on top of application.yml
+      DB_URL: jdbc:postgresql://db:5432/library        # "db" = the service name above
+      DB_USERNAME: library
+      DB_PASSWORD: library
+      # Override with:  JWT_SECRET=$(openssl rand -base64 48) docker compose up
+      JWT_SECRET: ${JWT_SECRET:-ZG9ja2VyLWRlbW8tbGlicmFyeS1zZWNyZXQtY2hhbmdlLW1lLTEyMzQ1Njc4OTBhYmNk}
+      CORS_ALLOWED_ORIGINS: http://localhost:8093
+    depends_on:
+      db:
+        condition: service_healthy     # don't start Spring (and Flyway) until Postgres is ready
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8093:80"                       # host port 8093 -> nginx port 80 inside the container
+    depends_on:
+      - backend
+
+volumes:
+  db-data:

@@ -1,0 +1,4 @@
+# Never send these to the Docker build: they are big and are rebuilt inside the image anyway.
+node_modules/
+dist/
+.angular/

@@ -1,0 +1,64 @@
+# =====================================================================================================
+# Default ("dev") configuration. Used by ./mvnw spring-boot:run and by the tests.
+#
+# Everything runs in memory: an H2 database is created at startup and thrown away at shutdown, so a
+# reviewer can clone the repo and run the app without installing PostgreSQL.
+#
+# Values written as ${NAME:default} are read from the environment variable NAME when it is set,
+# otherwise the default after the colon is used. That is how the same jar is configured differently
+# in development, Docker and the cloud without changing code.
+# =====================================================================================================
+server:
+  # 8083 instead of Spring's default 8080 so this app can run next to other local projects.
+  # In Docker the prod profile switches back to 8080 (see application-prod.yml).
+  port: ${PORT:8083}
+
+spring:
+  application:
+    name: library-management
+  datasource:
+    # jdbc:h2:mem:library      -> an in-memory database called "library"
+    # MODE=PostgreSQL          -> H2 imitates PostgreSQL syntax, so ONE set of Flyway migrations works on both
+    # DATABASE_TO_LOWER=TRUE   -> unquoted names are lower case, exactly like PostgreSQL
+    # DEFAULT_NULL_ORDERING=HIGH -> NULLs sort last in ASC order, again like PostgreSQL
+    url: jdbc:h2:mem:library;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
+  h2:
+    console:
+      # Browse the in-memory database at http://localhost:8083/h2-console (JDBC URL above, user "sa").
+      enabled: true
+  jpa:
+    # Open-Session-In-View keeps a DB connection open while JSON is being written. Turning it off forces
+    # all database work to happen inside @Transactional service methods, which is cleaner and faster.
+    open-in-view: false
+    hibernate:
+      # The schema is owned by Flyway migrations. Hibernate only checks that the entities match the
+      # tables and refuses to start if they don't (it never creates or alters tables itself).
+      ddl-auto: validate
+  flyway:
+    # Run every not-yet-applied script in src/main/resources/db/migration at startup.
+    enabled: true
+
+app:
+  # When true, DemoDataSeeder fills an empty database with books, members and loans.
+  # Tests turn this off so they fully control their own data.
+  seed-demo-data: true
+  cors:
+    # Origins (scheme + host + port) whose JavaScript may call this API from the browser.
+    # Even though the Angular dev server PROXIES /api calls (proxy.conf.json), the browser still sends an
+    # "Origin: http://localhost:4303" header, and the proxy passes it through. Spring sees an Origin that
+    # differs from its own host and applies CORS rules, so the dev-server origin MUST be listed here or
+    # every request from the browser would be rejected with 403 "Invalid CORS request".
+    # 4303 = this project's `ng serve` port; 4200 = Angular's default port, kept for convenience.
+    allowed-origins: http://localhost:4200,http://localhost:4303
+  jwt:
+    # Base64-encoded HMAC key used to sign tokens (must decode to at least 256 bits for HS256).
+    # This dev-only default is public on GitHub, so production MUST override it with JWT_SECRET.
+    secret: ${JWT_SECRET:ZGV2LW9ubHktbGlicmFyeS1zZWNyZXQtY2hhbmdlLW1lLWluLXByb2R1Y3Rpb24tMTIzNDU2}
+    expiration-ms: 86400000   # 24 hours; after that the user has to log in again
+
+springdoc:
+  swagger-ui:
+    # Interactive API documentation: http://localhost:8083/swagger-ui.html
+    path: /swagger-ui.html

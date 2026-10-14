@@ -1,0 +1,91 @@
+<div class="page-header">
+  <div>
+    <h1>Loans</h1>
+    <p>@if (page(); as p) { {{ p.totalElements }} loans } @else { &nbsp; }</p>
+  </div>
+</div>
+
+<!-- Lend a book at the desk -->
+<form class="card lend" [formGroup]="lendForm" (ngSubmit)="lend()" novalidate>
+  <h2>Lend a book</h2>
+  <div class="lend-row">
+    <!-- The selects are bound to FormControls (formControlName), so the selected option always matches the
+         control's value even though the <option>s are created later by @for. [ngValue] keeps numbers as numbers. -->
+    <select class="input" formControlName="memberId" aria-label="Member">
+      <option [ngValue]="null" disabled>Choose a member…</option>
+      @for (m of members(); track m.id) {
+        <option [ngValue]="m.id">{{ m.name }} ({{ m.activeLoans }}/3 on loan{{ m.overdueLoans ? ', ' + m.overdueLoans + ' overdue' : '' }})</option>
+      }
+    </select>
+    <select class="input" formControlName="bookId" aria-label="Book">
+      <option [ngValue]="null" disabled>Choose an available book…</option>
+      @for (b of availableBooks(); track b.id) {
+        <option [ngValue]="b.id">{{ b.title }} - {{ b.author }} ({{ b.availableCopies }} left)</option>
+      }
+    </select>
+    <button class="btn btn-primary" type="submit" [disabled]="lending()">{{ lending() ? 'Lending…' : 'Lend' }}</button>
+  </div>
+  @if (lendForm.touched && lendForm.invalid) {
+    <span class="error small">Choose both a member and a book.</span>
+  }
+</form>
+
+@if (notice()) {
+  <div class="alert alert-success" role="status">{{ notice() }}</div>
+}
+@if (error()) {
+  <div class="alert" role="alert">{{ error() }}</div>
+}
+
+<div class="card filters">
+  <label for="status-filter" class="muted">Status</label>
+  <select id="status-filter" class="input" [formControl]="statusFilter">
+    <option value="">All loans</option>
+    @for (s of statuses; track s) {
+      <option [value]="s">{{ s | loanStatus }}</option>
+    }
+  </select>
+  @if (memberFilter()) {
+    <span class="badge badge-ACTIVE">Member: {{ memberName || '#' + memberFilter() }}</span>
+    <button class="btn btn-ghost btn-sm" type="button" (click)="clearMemberFilter()">Show all members</button>
+  }
+</div>
+
+<div class="card table-card" [class.is-loading]="loading()">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Book</th><th>Member</th><th>Borrowed</th><th>Due</th><th>Status</th><th class="num">Fine</th>
+          <th class="actions-col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (loan of page()?.content ?? []; track loan.id) {
+          <tr>
+            <td><strong>{{ loan.bookTitle }}</strong><br /><span class="muted small">{{ loan.bookAuthor }}</span></td>
+            <td>{{ loan.memberName }}<br /><span class="muted small">{{ loan.memberEmail }}</span></td>
+            <td class="muted">{{ loan.borrowedDate | date: 'mediumDate' }}</td>
+            <td class="muted">
+              {{ loan.dueDate | date: 'mediumDate' }}
+              @if (loan.status !== 'RETURNED') { <br /><span class="small">{{ dueLabel(loan) }}</span> }
+            </td>
+            <td><span class="badge badge-{{ loan.status }}">{{ loan.status | loanStatus }}</span></td>
+            <td class="num" [class.fine]="loan.fine > 0">{{ loan.fine | currency: 'USD' }}</td>
+            <td class="actions">
+              @if (loan.status !== 'RETURNED') {
+                <button class="btn btn-secondary btn-sm" type="button" [disabled]="busyId() === loan.id"
+                        (click)="markReturned(loan)">Mark returned</button>
+              } @else {
+                <span class="muted small">{{ loan.returnedDate | date: 'mediumDate' }}</span>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7" class="empty">@if (loading()) { Loading… } @else { No loans found. }</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <app-pagination [page]="page()" (pageChange)="goToPage($event)" />
+</div>

@@ -1,0 +1,25 @@
+# =====================================================================================================
+# "prod" profile, activated with SPRING_PROFILES_ACTIVE=prod (docker-compose.yml does this).
+# Only the settings that DIFFER from application.yml are listed here; everything else is inherited.
+# =====================================================================================================
+server:
+  # Containers and most cloud hosts (Render, Railway, Heroku) tell the app which port to use via $PORT.
+  port: ${PORT:8080}
+
+spring:
+  datasource:
+    # Real PostgreSQL database. Credentials come from environment variables, never from the source code.
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/library}
+    username: ${DB_USERNAME:library}
+    password: ${DB_PASSWORD:library}
+  h2:
+    console:
+      enabled: false   # never expose a database console in production
+
+app:
+  # Seeding only inserts data into an EMPTY database, so leaving it on is safe for a demo deployment.
+  # Set SEED_DEMO_DATA=false for a real library.
+  seed-demo-data: ${SEED_DEMO_DATA:true}
+  cors:
+    # Comma-separated list, e.g. https://my-library.onrender.com
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:8093}

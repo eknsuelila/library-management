@@ -1,0 +1,83 @@
+<div class="page-header">
+  <div>
+    <h1>Catalog</h1>
+    <p>
+      @if (page(); as p) { {{ p.totalElements }} {{ p.totalElements === 1 ? 'book' : 'books' }} } @else { &nbsp; }
+      @if (auth.isMember()) {
+        · You have {{ openLoans().length }} of 3 books on loan
+      }
+    </p>
+  </div>
+  @if (auth.isLibrarian()) {
+    <a class="btn btn-primary" routerLink="/books/new">+ Add book</a>
+  }
+</div>
+
+<!-- Filters. Each control is a FormControl, so the <select> always shows the control's value
+     (a plain [value] binding on a select can show the wrong option before the @for options exist). -->
+<div class="card filters">
+  <input class="input" type="search" placeholder="Search by title, author or ISBN…"
+         [formControl]="search" aria-label="Search books" />
+  <select class="input" [formControl]="genre" aria-label="Filter by genre">
+    <option value="">All genres</option>
+    @for (g of genres(); track g) {
+      <option [value]="g">{{ g }}</option>
+    }
+  </select>
+  <label class="checkbox">
+    <input type="checkbox" [formControl]="availableOnly" /> Available only
+  </label>
+  @if (search.value || genre.value || availableOnly.value) {
+    <button class="btn btn-ghost" type="button" (click)="clearFilters()">Clear</button>
+  }
+</div>
+
+@if (notice()) {
+  <div class="alert alert-success" role="status">{{ notice() }}</div>
+}
+@if (error()) {
+  <div class="alert" role="alert">{{ error() }}</div>
+}
+
+<section class="grid" [class.is-loading]="loading()">
+  <!-- @for needs a `track` expression so Angular can reuse DOM nodes when the list changes. -->
+  @for (card of cards(); track card.book.id) {
+    <article class="card book-card">
+      <app-book-cover [url]="card.book.coverUrl" [title]="card.book.title" />
+      <div class="info">
+        <h2 class="title" [title]="card.book.title">{{ card.book.title }}</h2>
+        <p class="author">{{ card.book.author }}</p>
+        <p class="meta muted small">
+          {{ card.book.genre }}@if (card.book.publishedYear) { · {{ card.book.publishedYear }} }
+        </p>
+        <p>
+          @if (card.book.availableCopies > 0) {
+            <span class="badge badge-ok">{{ card.book.availableCopies }} of {{ card.book.totalCopies }} available</span>
+          } @else {
+            <span class="badge badge-none">All {{ card.book.totalCopies }} on loan</span>
+          }
+        </p>
+      </div>
+      <div class="card-actions">
+        @if (auth.isMember()) {
+          <button class="btn btn-primary btn-sm" type="button"
+                  [disabled]="card.blockedReason !== null || borrowingId() === card.book.id"
+                  (click)="borrow(card.book)">
+            {{ borrowingId() === card.book.id ? 'Borrowing…' : 'Borrow' }}
+          </button>
+          @if (card.blockedReason) {
+            <span class="reason small">{{ card.blockedReason }}</span>
+          }
+        } @else {
+          <a class="btn btn-secondary btn-sm" [routerLink]="['/books', card.book.id, 'edit']">Edit</a>
+        }
+      </div>
+    </article>
+  } @empty {
+    <div class="card empty full-row">
+      @if (loading()) { Loading… } @else { No books match your filters. }
+    </div>
+  }
+</section>
+
+<app-pagination [page]="page()" (pageChange)="goToPage($event)" />

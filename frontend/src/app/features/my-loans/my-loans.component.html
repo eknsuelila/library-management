@@ -1,0 +1,85 @@
+<div class="page-header">
+  <div>
+    <h1>My loans</h1>
+    <p>Up to 3 books at a time · 14 days each · one renewal · $0.25 per day late</p>
+  </div>
+  <a class="btn btn-primary" routerLink="/catalog">Browse catalog</a>
+</div>
+
+@if (notice()) {
+  <div class="alert alert-success" role="status">{{ notice() }}</div>
+}
+@if (error()) {
+  <div class="alert" role="alert">{{ error() }}</div>
+}
+@if (overdueCount() > 0) {
+  <div class="alert" role="alert">
+    You have {{ overdueCount() }} overdue {{ overdueCount() === 1 ? 'book' : 'books' }}. Please return
+    {{ overdueCount() === 1 ? 'it' : 'them' }} - you can't borrow anything else until then.
+  </div>
+}
+
+@if (loading()) {
+  <p class="muted">Loading…</p>
+} @else {
+  <section class="summary">
+    <div class="card stat"><span class="muted">On loan</span><strong>{{ current().length }} / 3</strong></div>
+    <div class="card stat"><span class="muted">Overdue</span><strong [class.danger]="overdueCount() > 0">{{ overdueCount() }}</strong></div>
+    <div class="card stat"><span class="muted">Fines</span><strong>{{ totalFines() | currency: 'USD' }}</strong></div>
+  </section>
+
+  <h2>Currently borrowed</h2>
+  <div class="loan-list">
+    @for (loan of current(); track loan.id) {
+      <article class="card loan" [class.overdue]="loan.status === 'OVERDUE'">
+        <app-book-cover class="thumb" [url]="loan.bookCoverUrl" [title]="loan.bookTitle" />
+        <div class="details">
+          <h3>{{ loan.bookTitle }}</h3>
+          <p class="muted">{{ loan.bookAuthor }}</p>
+          <p class="small muted">
+            Borrowed {{ loan.borrowedDate | date: 'mediumDate' }} · Due <strong>{{ loan.dueDate | date: 'mediumDate' }}</strong>
+            @if (loan.renewCount > 0) { · renewed }
+          </p>
+          <p>
+            <span class="badge badge-{{ loan.status }}">{{ dueLabel(loan) }}</span>
+            @if (loan.fine > 0) {
+              <span class="fine">Fine so far: {{ loan.fine | currency: 'USD' }}</span>
+            }
+          </p>
+        </div>
+        <div class="buttons">
+          <button class="btn btn-secondary btn-sm" type="button" [title]="renewHint(loan)"
+                  [disabled]="!loan.canRenew || busyId() === loan.id" (click)="renew(loan)">Renew</button>
+          <button class="btn btn-primary btn-sm" type="button"
+                  [disabled]="busyId() === loan.id" (click)="returnLoan(loan)">Return</button>
+        </div>
+      </article>
+    } @empty {
+      <div class="card empty">You have no books on loan. <a routerLink="/catalog">Find something to read →</a></div>
+    }
+  </div>
+
+  @if (history().length > 0) {
+    <h2>History</h2>
+    <div class="card table-card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Book</th><th>Borrowed</th><th>Returned</th><th>Status</th><th class="num">Fine</th></tr>
+          </thead>
+          <tbody>
+            @for (loan of history(); track loan.id) {
+              <tr>
+                <td><strong>{{ loan.bookTitle }}</strong><br /><span class="muted small">{{ loan.bookAuthor }}</span></td>
+                <td class="muted">{{ loan.borrowedDate | date: 'mediumDate' }}</td>
+                <td class="muted">{{ loan.returnedDate | date: 'mediumDate' }}</td>
+                <td><span class="badge badge-RETURNED">{{ loan.status | loanStatus }}</span></td>
+                <td class="num" [class.fine]="loan.fine > 0">{{ loan.fine | currency: 'USD' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+}

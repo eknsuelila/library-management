@@ -1,0 +1,68 @@
+<div class="page-header">
+  <div>
+    <h1>Dashboard</h1>
+    <p>The library at a glance</p>
+  </div>
+  <div class="header-actions">
+    <a class="btn btn-secondary" routerLink="/loans">Lend a book</a>
+    <a class="btn btn-primary" routerLink="/books/new">+ Add book</a>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="alert" role="alert">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <p class="muted">Loading…</p>
+} @else {
+  @if (stats(); as s) {
+    <section class="stat-grid">
+      <div class="card stat">
+        <span class="stat-label">Titles</span>
+        <span class="stat-value">{{ s.totalTitles }}</span>
+        <span class="stat-hint">{{ s.totalCopies }} copies owned</span>
+      </div>
+      <div class="card stat">
+        <span class="stat-label">On loan</span>
+        <span class="stat-value">{{ s.copiesOnLoan }}</span>
+        <span class="stat-hint">{{ s.totalCopies - s.copiesOnLoan }} on the shelf</span>
+      </div>
+      <a class="card stat link" routerLink="/loans" [queryParams]="{ status: 'OVERDUE' }">
+        <span class="stat-label">Overdue</span>
+        <span class="stat-value" [class.danger]="s.overdueLoans > 0">{{ s.overdueLoans }}</span>
+        <span class="stat-hint">View overdue loans →</span>
+      </a>
+      <a class="card stat link" routerLink="/members">
+        <span class="stat-label">Members</span>
+        <span class="stat-value">{{ s.members }}</span>
+        <span class="stat-hint">View members →</span>
+      </a>
+      <div class="card stat">
+        <span class="stat-label">Fines outstanding</span>
+        <span class="stat-value">{{ s.finesOutstanding | currency: 'USD' }}</span>
+        <span class="stat-hint">Recorded + accruing on overdue loans</span>
+      </div>
+    </section>
+
+    <!-- The #names connect each <canvas> to a @ViewChild in the component. -->
+    <section class="chart-grid">
+      <div class="card wide">
+        <h2>Loans per month</h2>
+        <div class="chart-box"><canvas #monthlyChart></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Copies right now</h2>
+        <div class="chart-box"><canvas #stockChart></canvas></div>
+      </div>
+      <div class="card full">
+        <h2>Top 5 most borrowed</h2>
+        @if (s.topBorrowed.length === 0) {
+          <p class="muted">No loans yet.</p>
+        } @else {
+          <div class="chart-box"><canvas #topChart></canvas></div>
+        }
+      </div>
+    </section>
+  }
+}

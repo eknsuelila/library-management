@@ -1,0 +1,21 @@
+<!doctype html>
+<!--
+  The ONLY real HTML page of the app (a "Single-Page Application"). The browser loads it once; after that,
+  Angular swaps components in and out of <app-root> as the URL changes, without full page reloads.
+  The build step injects the <script> and <link> tags for the compiled JavaScript and CSS automatically.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Library Management</title>
+  <!-- Base URL for the Angular router: all routes are resolved relative to "/". -->
+  <base href="/">
+  <!-- Makes the layout use the device width on phones instead of a zoomed-out desktop view. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Library Management System - catalog, loans and statistics.">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>

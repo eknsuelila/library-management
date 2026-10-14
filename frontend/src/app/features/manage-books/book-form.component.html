@@ -1,0 +1,84 @@
+<div class="page-header">
+  <div>
+    <h1>{{ isEdit ? 'Edit book' : 'Add a book' }}</h1>
+    <p>{{ isEdit ? 'Update the catalog entry' : 'Add a new title to the catalog' }}</p>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="alert" role="alert">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <p class="muted">Loading…</p>
+} @else {
+  <form class="card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="form-grid">
+      <div class="field full">
+        <label for="title">Title *</label>
+        <input id="title" class="input" formControlName="title" />
+        @if (showError('title')) { <span class="error">Title is required.</span> }
+      </div>
+
+      <div class="field">
+        <label for="author">Author *</label>
+        <input id="author" class="input" formControlName="author" />
+        @if (showError('author')) { <span class="error">Author is required.</span> }
+      </div>
+
+      <div class="field">
+        <label for="isbn">ISBN *</label>
+        <input id="isbn" class="input" formControlName="isbn" placeholder="9780441172719" />
+        @if (showError('isbn')) {
+          <span class="error">ISBN must be 10 or 13 digits.</span>
+        } @else {
+          <span class="hint muted">Hyphens are removed automatically.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="genre">Genre *</label>
+        <!-- list="genre-options" links the input to the <datalist>: suggestions, but free text is allowed. -->
+        <input id="genre" class="input" formControlName="genre" list="genre-options" />
+        <datalist id="genre-options">
+          @for (g of genres(); track g) { <option [value]="g"></option> }
+        </datalist>
+        @if (showError('genre')) { <span class="error">Genre is required.</span> }
+      </div>
+
+      <div class="field">
+        <label for="publishedYear">Year published</label>
+        <input id="publishedYear" class="input" type="number" formControlName="publishedYear" />
+        @if (showError('publishedYear')) { <span class="error">Enter a year between 1450 and 2100.</span> }
+      </div>
+
+      <div class="field">
+        <label for="totalCopies">Total copies *</label>
+        <input id="totalCopies" class="input" type="number" min="0" formControlName="totalCopies" />
+        @if (showError('totalCopies')) {
+          <span class="error">Must be at least {{ onLoan() }} ({{ onLoan() }} on loan right now).</span>
+        } @else if (isEdit) {
+          <span class="hint muted">{{ onLoan() }} currently on loan.</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="coverUrl">Cover image URL</label>
+        <input id="coverUrl" class="input" type="url" formControlName="coverUrl" placeholder="https://…" />
+        @if (showError('coverUrl')) { <span class="error">URL must start with http:// or https://</span> }
+      </div>
+
+      <div class="field full">
+        <label for="description">Description</label>
+        <textarea id="description" class="input" formControlName="description"></textarea>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn-secondary" routerLink="/books">Cancel</a>
+      <button class="btn btn-primary" type="submit" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : (isEdit ? 'Save changes' : 'Add book') }}
+      </button>
+    </div>
+  </form>
+}

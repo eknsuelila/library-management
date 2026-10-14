@@ -1,0 +1,40 @@
+/* Responsive card grid: as many 200px+ columns as fit the screen. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  transition: opacity 0.15s;
+  &.is-loading { opacity: 0.6; }
+}
+.full-row { grid-column: 1 / -1; }
+
+.book-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+}
+
+.info {
+  flex: 1;
+  p { margin: 4px 0; }
+}
+
+/* Long titles are clamped to two lines with an ellipsis. */
+.title {
+  font-size: 15px;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.author { color: var(--text-muted); }
+
+.card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  .btn { width: 100%; }
+}
+.reason { color: var(--warning); text-align: center; }

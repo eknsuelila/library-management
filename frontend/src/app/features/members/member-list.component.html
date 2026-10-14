@@ -1,0 +1,54 @@
+<div class="page-header">
+  <div>
+    <h1>Members</h1>
+    <p>@if (page(); as p) { {{ p.totalElements }} registered members } @else { &nbsp; }</p>
+  </div>
+</div>
+
+<div class="card filters">
+  <input class="input" type="search" placeholder="Search by name or email…" [formControl]="search" aria-label="Search members" />
+</div>
+
+@if (error()) {
+  <div class="alert" role="alert">{{ error() }}</div>
+}
+
+<div class="card table-card" [class.is-loading]="loading()">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th><th>Email</th><th>Member since</th>
+          <th class="num">On loan</th><th class="num">Overdue</th><th class="num">All-time loans</th>
+          <th class="actions-col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (m of page()?.content ?? []; track m.id) {
+          <tr>
+            <td><strong>{{ m.name }}</strong></td>
+            <td class="muted">{{ m.email }}</td>
+            <td class="muted">{{ m.joinedAt | date: 'mediumDate' }}</td>
+            <td class="num">
+              <span class="badge" [class.badge-warn]="m.activeLoans >= 3" [class.badge-ACTIVE]="m.activeLoans < 3">{{ m.activeLoans }} / 3</span>
+            </td>
+            <td class="num">
+              @if (m.overdueLoans > 0) {
+                <span class="badge badge-OVERDUE">{{ m.overdueLoans }}</span>
+              } @else {
+                <span class="muted">0</span>
+              }
+            </td>
+            <td class="num">{{ m.totalLoans }}</td>
+            <td class="actions">
+              <a class="btn btn-secondary btn-sm" routerLink="/loans" [queryParams]="{ memberId: m.id, memberName: m.name }">View loans</a>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7" class="empty">@if (loading()) { Loading… } @else { No members found. }</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <app-pagination [page]="page()" (pageChange)="goToPage($event)" />
+</div>

@@ -1,0 +1,69 @@
+/* Sticky top navigation bar. */
+.navbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  nav {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+    flex-wrap: wrap;
+
+    a {
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+
+      &:hover { background: var(--surface-alt); color: var(--text); }
+      &.active { background: var(--primary-soft); color: var(--primary); }
+    }
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.brand-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--primary-soft);
+  font-size: 18px;
+}
+
+.user { display: flex; align-items: center; gap: 10px; }
+
+.role-chip {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #0369a1;
+  &.staff { background: var(--warning-soft); color: var(--warning); }
+}
+
+/* On phones: nav links wrap onto their own row and the name is hidden. */
+@media (max-width: 760px) {
+  .navbar { flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
+  .navbar nav { order: 3; flex-basis: 100%; }
+  .user-name { display: none; }
+}
