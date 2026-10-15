@@ -1,5 +1,8 @@
 # 📚 Library Management System
 
+**🔗 Live demo: [library-management.edsuelila.dev](https://library-management.edsuelila.dev)**: log in with `librarian@example.com` (staff) or `member@example.com`, password `password123`.
+The demo accounts are shared by all visitors, so data you see may have been changed by someone else.
+
 A full-stack library app where **members** browse a catalog and borrow, renew and return books, and **librarians** manage the catalog, lend books at the desk, track overdue loans and follow usage on a dashboard. It is built with **Spring Boot 3 (Java 17)** and **Angular 17**. Real lending rules are enforced on the server: a 3-book limit, 14-day loans, one renewal, $0.25/day late fines, and no new borrowing while a loan is overdue. Every rule has a test. Role-based security uses JWT, and **optimistic locking** stops two members from borrowing the last copy at the same moment. The whole stack runs with one `docker compose up`.
 
 > Built as a portfolio project. The code is commented as a learning resource, and
